@@ -61,14 +61,14 @@
                                 <label for="email" class="form-label">Email</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                    <input type="email" class="form-control" id="email" required>
+                                    <input type="email" placeholder="Enter your email address" class="form-control" id="email" required>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    <input type="password" class="form-control" id="password" required>
+                                    <input type="password" placeholder="Enter your password" class="form-control" id="password" required>
                                 </div>
                             </div>
                             <div class="d-grid">

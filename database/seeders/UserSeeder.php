@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         // Admin user
         User::create([
             'name' => 'Admin User',
-            'email' => 'admin@example.com',
+            'email' => 'admin@yopmail.com',
             'password' => Hash::make('Admin123'),
             'role' => 'admin',
         ]);
@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
         // Technicians
         User::create([
             'name' => 'John Technician',
-            'email' => 'tech1@example.com',
+            'email' => 'tech1@yopmail.com',
             'password' => Hash::make('Technician123'),
             'role' => 'technician',
             'is_available' => true,
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'Jane Technician',
-            'email' => 'tech2@example.com',
+            'email' => 'tech2@yopmail.com',
             'password' => Hash::make('Technician123'),
             'role' => 'technician',
             'is_available' => true,
@@ -42,14 +42,14 @@ class UserSeeder extends Seeder
         // Customers
         User::create([
             'name' => 'Customer One',
-            'email' => 'customer1@example.com',
+            'email' => 'customer1@yopmail.com',
             'password' => Hash::make('Customer123'),
             'role' => 'customer',
         ]);
 
         User::create([
             'name' => 'Customer Two',
-            'email' => 'customer2@example.com',
+            'email' => 'customer2@yopmail.com',
             'password' => Hash::make('Customer123'),
             'role' => 'customer',
         ]);

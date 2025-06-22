@@ -249,7 +249,7 @@
                                         <p class="card-text">Not Available</p>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="fas fa-clock fa-2x"></i>
+                                        <i class="fas fa-ban fa-2x"></i>
                                     </div>
                                 </div>
                             </div>

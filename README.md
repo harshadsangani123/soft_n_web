@@ -54,6 +54,7 @@ Set up the database tables by running migrations:
 ```bash
 php artisan migrate
 ```
+If you need database Sql file find it in `database/softnweb_practical.sql`
 
 ### 6. Seed the Database
 
@@ -92,6 +93,10 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+## Postman Collection
+
+You can import the Postman collection provided in the repository to test the API endpoints.
+file is located at `Postman Collection/Complaint management system.postman_collection.json`
 
 ## Troubleshooting
 
