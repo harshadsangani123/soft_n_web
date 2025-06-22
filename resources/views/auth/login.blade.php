@@ -41,10 +41,13 @@
             background: linear-gradient(45deg, #5a67d8, #6b46c1);
         }
     </style>
+    <script>
+        window.API_URL = '{{ config('app.api_url') }}';
+    </script>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
+        <div class="row" style="justify-content: center ;align-items: center;min-height: 100vh">
             <!-- Sidebar -->
             <div class="col-md-6 col-lg-4">
                 <div class="card login-card">
@@ -111,7 +114,7 @@
             };
 
             $.ajax({
-                url: 'http://127.0.0.1:8000/api/login',
+                url: window.API_URL + 'login',
                 method: 'POST',
                 data: JSON.stringify(loginData),
                 headers: {

@@ -12,6 +12,7 @@
                     <select class="form-select" id="status-select" required>
                         <option value="open">Open</option>
                         <option value="in_progress">In Progress</option>
+                        <option value="not_available">Not Available</option>
                         <option value="resolved">Resolved</option>
                     </select>
                 </div>

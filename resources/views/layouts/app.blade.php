@@ -41,6 +41,9 @@
             background: linear-gradient(45deg, #5a67d8, #6b46c1);
         }
     </style>
+    <script>
+        window.API_URL = '{{ config('app.api_url') }}';
+    </script>
 </head>
 <body>
     <div class="container-fluid">
@@ -173,13 +176,13 @@
                 $(this).addClass('active');
             });
         }
-
+        
         // Setup event listeners
         function setupEventListeners() {
             $('#dashboard-link').click(() => loadDashboard());
             $('#my-complaints-link').click(() => loadMyComplaints());
             $('#new-complaint-link').click(() => showNewComplaintModal());
-            $('#all-complaints-link').click(() => loadAllComplaints());
+            $('#all-complaints-link').click(() => loadAllComplaints());        
             $('#technicians-link').click(() => loadTechnicians());
             $('#assigned-complaints-link').click(() => loadAssignedComplaints());
             $('#logout-link').click(() => logout());
@@ -207,7 +210,7 @@
             
             let dashboardHtml = `
                 <div class="row">
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-3 mb-3">
                         <div class="card text-white bg-primary">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -222,7 +225,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-3 mb-3">
                         <div class="card text-white bg-warning">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -237,7 +240,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-white bg-danger">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="card-title" id="not-available-complaints">0</h4>
+                                        <p class="card-text">Not Available</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-clock fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <div class="card text-white bg-success">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -273,18 +291,30 @@
 
         // Load Dashboard Statistics
         function loadDashboardStats() {
-            let endpoint = currentUser.role === 'customer' ? '/api/my-complaints' : '/api/complaints';
             
-            apiCall('http://127.0.0.1:8000' + endpoint)
+            // let endpoint = currentUser.role === 'customer' ? 'my-complaints' : 'complaints';
+            // endpoint = currentUser.role === 'technician' ? 'assigned-complaints' : endpoint;
+            let endpoint;
+
+            if (currentUser.role === 'technician') {
+                endpoint = 'assigned-complaints';
+            } else if (currentUser.role === 'customer') {
+                endpoint = 'my-complaints';
+            } else {
+                endpoint = 'complaints';
+            }            
+            apiCall(window.API_URL + endpoint)
                 .done(function(response) {
                     let complaints = response.complaints.data;
                     let total = complaints.length;
                     let pending = complaints.filter(c => c.status === 'open' || c.status === 'in_progress').length;
+                    let notAvailable = complaints.filter(c => c.status === 'not_available').length;
                     let resolved = complaints.filter(c => c.status === 'resolved').length;
                     
                     $('#total-complaints').text(total);
                     $('#pending-complaints').text(pending);
                     $('#resolved-complaints').text(resolved);
+                    $('#not-available-complaints').text(notAvailable);
                     
                     // Show recent complaints
                     let recentHtml = '';
@@ -295,7 +325,7 @@
                                     <strong>${complaint.title}</strong>
                                     <br><small class="text-muted">${complaint.description.substring(0, 50)}...</small>
                                 </div>
-                                <span class="badge ${getStatusBadgeClass(complaint.status)}">${complaint.status}</span>
+                                <span class="badge ${getStatusBadgeClass(complaint.status)}">${formatStatusText(complaint.status)}</span>
                             </div>
                         `;
                     });
@@ -307,16 +337,31 @@
                 });
         }
 
+        // Load Technicians
+        function loadTechnicians() {
+            $('#page-title').text('Technicians');
+            $('#breadcrumb').html('<li class="breadcrumb-item active">Technicians</li>');
+            
+            apiCall(window.API_URL+'technicians/available')
+                .done(function(response) {
+                    renderTechniciansList(response);
+                })
+                .fail(function() {
+                    $('#content-area').html('<div class="alert alert-danger">Failed to load technicians</div>');
+                });
+        }
+
         // Load My Complaints (Customer)
         function loadMyComplaints(page = 1, status = '') {
             $('#page-title').text('My Complaints');
             $('#breadcrumb').html('<li class="breadcrumb-item active">My Complaints</li>');
             
-            let url = `http://127.0.0.1:8000/api/my-complaints?page=${page}`;
+            let url = window.API_URL + `my-complaints?page=${page}`;
             if (status) url += `&status=${status}`;
             
             apiCall(url)
                 .done(function(response) {
+                    console.log(response);
                     renderComplaintsList(response, 'customer');
                 })
                 .fail(function() {
@@ -329,7 +374,7 @@
             $('#page-title').text('All Complaints');
             $('#breadcrumb').html('<li class="breadcrumb-item active">All Complaints</li>');
             
-            let url = `http://127.0.0.1:8000/api/complaints?page=${page}`;
+            let url = window.API_URL+ `complaints?page=${page}`;
             if (status) url += `&status=${status}`;
             
             apiCall(url)
@@ -346,7 +391,7 @@
             $('#page-title').text('Assigned Complaints');
             $('#breadcrumb').html('<li class="breadcrumb-item active">Assigned Complaints</li>');
             
-            let url = `http://127.0.0.1:8000/api/assigned-complaints?page=${page}`;
+            let url = window.API_URL+`assigned-complaints?page=${page}`;
             if (status) url += `&status=${status}`;
             
             apiCall(url)
@@ -358,28 +403,68 @@
                 });
         }
 
-        // Render Complaints List
-        function renderComplaintsList(response, userType) {
-            let complaints = response.complaints;
-            let html = `
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        ${userType === 'customer' ? '<button class="btn btn-primary" onclick="showNewComplaintModal()"><i class="fas fa-plus"></i> New Complaint</button>' : ''}
+        function renderTechniciansList(response) {
+            console.log('response',response);  
+            let technicians = response.technicians;
+            let html = '';
+            
+            technicians.forEach(technician => {
+                html += `
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">${technician.name}</h5>
+                            <p class="card-text">Email: ${technician.email}</p>                            
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="d-flex justify-content-end">
-                            <select class="form-select w-auto" id="status-filter" onchange="filterByStatus(this.value)">
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                            </select>
+                `;
+            });
+            
+            $('#content-area').html(html);
+        }
+
+        function renderComplaintsList(response, userType) {
+        let complaints = response.complaints;
+        let currentStatus = $('#status-filter').val() || ''; // Get current filter value
+        
+        let html = `
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    ${userType === 'customer' ? '<button class="btn btn-primary" onclick="showNewComplaintModal()"><i class="fas fa-plus"></i> New Complaint</button>' : ''}
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <select class="form-select w-auto" id="status-filter" onchange="filterByStatus(this.value)">
+                            <option value="" ${currentStatus === '' ? 'selected' : ''}>All Status</option>
+                            <option value="open" ${currentStatus === 'open' ? 'selected' : ''}>Open</option>
+                            <option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="not_available" ${currentStatus === 'not_available' ? 'selected' : ''}>Not Available</option>
+                            <option value="resolved" ${currentStatus === 'resolved' ? 'selected' : ''}>Resolved</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Check if complaints data exists and has items
+        if (!complaints.data || complaints.data.length === 0) {
+            html += `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Complaints Found</h5>
+                                <p class="text-muted">
+                                    ${currentStatus ? `No complaints found with status "${formatStatusText(currentStatus)}".` : 'No complaints available at the moment.'}
+                                </p>
+                                ${currentStatus ? '<button class="btn btn-outline-primary" onclick="clearFilter()">Clear Filter</button>' : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="row">
             `;
+        } else {
+            html += '<div class="row">';
             
             complaints.data.forEach(complaint => {
                 html += `
@@ -387,7 +472,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">${complaint.title}</h6>
-                                <span class="badge ${getStatusBadgeClass(complaint.status)}">${complaint.status}</span>
+                                <span class="badge ${getStatusBadgeClass(complaint.status)}">${formatStatusText(complaint.status)}</span>
                             </div>
                             <div class="card-body">
                                 <p class="card-text">${complaint.description}</p>
@@ -418,11 +503,12 @@
             
             html += '</div>';
             
-            // Add pagination
+            // Add pagination only if there are complaints
             html += renderPagination(complaints);
-            
-            $('#content-area').html(html);
         }
+        
+        $('#content-area').html(html);
+    }
 
         // Get action buttons based on user type and complaint status
         function getActionButtons(complaint, userType) {
@@ -500,6 +586,12 @@
             loadCurrentView(1); // Reset to first page when filtering
         }
 
+        // Clear filter function
+        function clearFilter() {
+            $('#status-filter').val('');
+            loadCurrentView(1);
+        }
+
         // Show New Complaint Modal
         function showNewComplaintModal() {
             $('#complaintModal').modal('show');
@@ -510,7 +602,7 @@
             $('#assignModal').data('complaint-id', complaintId);
             
             // Load available technicians
-            apiCall('http://127.0.0.1:8000/api/technicians/available')
+            apiCall( window.API_URL + 'technicians/available')
                 .done(function(response) {
                     let options = '<option value="">Select Technician</option>';
                     response.technicians.forEach(tech => {
@@ -538,7 +630,7 @@
                 description: $('#complaint-description').val()
             };
             
-            apiCall('http://127.0.0.1:8000/api/complaints', 'POST', JSON.stringify(formData))
+            apiCall(window.API_URL+'complaints', 'POST', JSON.stringify(formData))
                 .done(function(response) {
                     $('#complaintModal').modal('hide');
                     $('#complaint-form')[0].reset();
@@ -564,7 +656,7 @@
                 technician_id: parseInt(technicianId)
             };
             
-            apiCall(`http://127.0.0.1:8000/api/complaints/${complaintId}/assign`, 'POST', JSON.stringify(formData))
+            apiCall( window.API_URL+`complaints/${complaintId}/assign`, 'POST', JSON.stringify(formData))
                 .done(function(response) {
                     $('#assignModal').modal('hide');
                     alert('Technician assigned successfully!');
@@ -584,7 +676,7 @@
                 status: status
             };
             
-            apiCall(`http://127.0.0.1:8000/api/complaints/${complaintId}/status`, 'PATCH', JSON.stringify(formData))
+            apiCall(window.API_URL+`complaints/${complaintId}/status`, 'PATCH', JSON.stringify(formData))
                 .done(function(response) {
                     $('#statusModal').modal('hide');
                     alert('Status updated successfully!');
@@ -601,7 +693,7 @@
                 return;
             }
             
-            apiCall(`http://127.0.0.1:8000/api/complaints/${complaintId}`, 'DELETE')
+            apiCall(window.API_URL+ `complaints/${complaintId}`, 'DELETE')
                 .done(function(response) {
                     alert('Complaint deleted successfully!');
                     loadMyComplaints();
@@ -623,8 +715,18 @@
             switch(status) {
                 case 'open': return 'bg-primary';
                 case 'in_progress': return 'bg-warning';
+                case 'not_available': return 'bg-warning';
                 case 'resolved': return 'bg-success';
                 default: return 'bg-secondary';
+            }
+        }
+        function formatStatusText(status) {
+            switch(status) {
+                case 'open': return 'Open';
+                case 'in_progress': return 'In Progress';                
+                case 'not_available': return 'Not Available';
+                case 'resolved': return 'Resolved';
+                default: return status.charAt(0).toUpperCase() + status.slice(1);
             }
         }
 

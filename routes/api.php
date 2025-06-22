@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Technician routes
-    Route::middleware('role:technician')->group(function () {
+    Route::middleware('role:technician')->group(function () {        
         Route::get('/assigned-complaints', [ComplaintController::class, 'technicianComplaints']);
         Route::patch('/complaints/{complaint}/status', [ComplaintController::class, 'updateStatus']);
     });

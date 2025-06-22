@@ -8,8 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {            
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -25,6 +24,9 @@
             border-radius: 15px 15px 0 0;
         }
     </style>
+    <script>
+        window.API_URL = '{{ config('app.api_url') }}';
+    </script>
 </head>
 <body>
     <div class="container">
@@ -125,7 +127,7 @@
             };
 
             $.ajax({
-                url: 'http://127.0.0.1:8000/api/register',
+                url: window.API_URL + 'register',
                 method: 'POST',
                 data: JSON.stringify(registerData),
                 headers: {
@@ -135,8 +137,13 @@
                 dataType: 'json'
             })
             .done(function(response) {
-                alert('Registration successful! Please login with your credentials.');
-                window.location.href = '/login';
+                alert('Registration successful!');
+                // Store auth token and user data
+                localStorage.setItem('auth_token', response.token);
+                localStorage.setItem('user_data', JSON.stringify(response.user));
+                // Redirect to dashboard
+                window.location.href = '/dashboard';
+                // window.location.href = '/login';
             })
             .fail(function(xhr) {
                 let errorMessage = 'Registration failed. Please try again.';
